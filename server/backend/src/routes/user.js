@@ -43,8 +43,9 @@ router.post('/login', async (req,res) => {
     });
     
 })
-
-
+router.post('/sessions',async(req,res)=>{} )
+router.post('/addraspy',async(req,res) => {
+})
 /*router.get('/tasks', (req,res)=>{
     res.json([
         {
