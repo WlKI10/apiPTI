@@ -6,7 +6,7 @@ var bcrypt = require('bcrypt');
      email: {type: String, required: true, unique: true},
      username: {type: String, required: true, unique: true},
      password: {type: String, required: true},
-     raspy:[{UUID:{type:String,required:false, unique:true},PIN:{type:String,required:false,unique:false}}]
+    
  }, {
      timestamps: true
  });

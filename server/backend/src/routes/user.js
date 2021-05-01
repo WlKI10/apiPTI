@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
 
 const saltRounds = 10;
-var user_actual = new User();
+
 
 router.post('/signup', async (req,res) => {
     const {email, username, password} = req.body;
@@ -20,21 +20,21 @@ router.post('/signup', async (req,res) => {
     await newUser.save();
 
     //Creamos el token
-    const token = jwt.sign({_id: newUser._id}, 'secretKey')
+    const token = jwt.sign({_id: newUser._id,username: newUser.email}, 'secretKey')
     //res.status(200).json({token})
 
     res.status(200).json({token});
 })
 
 router.post('/login', async (req,res) => {
-    const {username, password} = req.body;
-    const user = await User.findOne({username})
+    const {email, password} = req.body;
+    const user = await User.findOne({email})
     
     if (!user) res.status(401).send("The username doesn't exist or the password is incorrect");
     user.comparePassword(password, function(err, isMatch){
         if (isMatch && isMatch == true){
-            user_actual = user;
-            const token = jwt.sign({_id: user._id}, 'secretKey');
+        
+            const token = jwt.sign({_id: user._id,email:user}, 'secretKey');
             return res.status(200).json({token});
         }
         else {
