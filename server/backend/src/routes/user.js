@@ -1,5 +1,6 @@
 const {Router} = require('express');
 const router = Router();
+const Raspi = require('../models/Raspi');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
@@ -44,7 +45,9 @@ router.post('/login', async (req,res) => {
     
 })
 router.post('/sessions',async(req,res)=>{} )
-router.post('/addraspy',async(req,res) => {
+
+router.post('/addraspy',verifyandLookToken,async(req,res) => {
+   
 })
 router.get('/tasks', (req,res)=>{
     res.json([
@@ -93,6 +96,34 @@ router.get('/private-tasks', verifyToken, (req,res)=>{
 })
 
 //router.get('/dashboard',)
+async function verifyandLookToken(req, res, next){
+    
+    if (!req.headers.authorization){
+        return res.status(401).send("Unauthorized Request3");
+    }
+    const token = req.headers.authorization.split(' ')[1];
+    //console.log(req.headers.authorization.json())
+    console.log(token)
+    if (token == null) return res.status(401).send("Unauthorized Request2");
+    const payload =  jwt.verify(token, 'secretKey')
+    if (!payload) {
+        return res.status(401).send('Unauhtorized Request');
+    }
+
+    req.userId = payload._id;
+      User.findOne({_id: userId})
+     .then(function(user){
+        // Do something with the user
+       
+        
+       return res.send(200)
+    },async function(err){
+        const newRaspi = new Raspi({email, username, password});
+         newRaspi.save();
+        return res.send(200);
+    });
+    next();
+}
  function verifyToken(req, res, next){
     
     if (!req.headers.authorization){
@@ -114,6 +145,7 @@ router.get('/private-tasks', verifyToken, (req,res)=>{
 router.get('/profile', verifyToken, (req,res) =>{
     res.send(req.userID);
 })
+
 /*
 router.post('/profile/modifypassword', verifyToken, async (req,res) => {
 
