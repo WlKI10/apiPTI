@@ -99,20 +99,22 @@ router.get('/private-tasks', verifyToken, (req,res)=>{
         return res.status(401).send("Unauthorized Request3");
     }
     const token = req.headers.authorization.split(' ')[1];
-    if (token === 'null') return res.status(401).send("Unauthorized Request2");
+    //console.log(req.headers.authorization.json())
+    console.log(token)
+    if (token == null) return res.status(401).send("Unauthorized Request2");
     const payload =  jwt.verify(token, 'secretKey')
     if (!payload) {
         return res.status(401).send('Unauhtorized Request');
     }
 
-    req.userID = payload._id;
+    req.userId = payload._id;
     next();
 }
-/*
+
 router.get('/profile', verifyToken, (req,res) =>{
     res.send(req.userID);
 })
-
+/*
 router.post('/profile/modifypassword', verifyToken, async (req,res) => {
 
     const {old_password, new_password1, new_password2} = req.body;
