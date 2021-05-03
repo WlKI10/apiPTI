@@ -34,7 +34,7 @@ router.post('/login', async (req,res) => {
     user.comparePassword(password, function(err, isMatch){
         if (isMatch && isMatch == true){
         
-            const token = jwt.sign({_id: user._id,email:user}, 'secretKey');
+            const token = jwt.sign({_id: user._id,email:user.email}, 'secretKey');
             return res.status(200).json({token});
         }
         else {
@@ -46,7 +46,7 @@ router.post('/login', async (req,res) => {
 router.post('/sessions',async(req,res)=>{} )
 router.post('/addraspy',async(req,res) => {
 })
-/*router.get('/tasks', (req,res)=>{
+router.get('/tasks', (req,res)=>{
     res.json([
         {
             _id:1,
@@ -92,17 +92,23 @@ router.get('/private-tasks', verifyToken, (req,res)=>{
     ])
 })
 
-function verifyToken(req, res, next){
+//router.get('/dashboard',)
+ function verifyToken(req, res, next){
+    
     if (!req.headers.authorization){
-        return res.status(401).send("Unauthorized Request");
+        return res.status(401).send("Unauthorized Request3");
     }
     const token = req.headers.authorization.split(' ')[1];
-    if (token == null) return res.status(401).send("Unauthorized Request");
-    const payload = jwt.verify(token, 'secretKey')
+    if (token === 'null') return res.status(401).send("Unauthorized Request2");
+    const payload =  jwt.verify(token, 'secretKey')
+    if (!payload) {
+        return res.status(401).send('Unauhtorized Request');
+    }
+
     req.userID = payload._id;
     next();
 }
-
+/*
 router.get('/profile', verifyToken, (req,res) =>{
     res.send(req.userID);
 })
