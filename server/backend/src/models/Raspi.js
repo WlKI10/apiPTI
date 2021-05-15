@@ -24,12 +24,12 @@ raspiSchema.pre('save',function(next){
     bcrypt.genSalt(SALT_WORK_FACTOR, function(err,salt){
         if (err) return next(err);
 
-        //Hash the password using the new salt
+        //Hash the pin using the new salt
         bcrypt.hash(Raspi.raspis.findOne('pin'), salt, function(err, hash){
             if (err) return next(err);
 
-            //Overwrite the password with the hashed one
-            raspi.password = hash;
+            //Overwrite the pin with the hashed one
+            Raspi.raspis.push(hash);
             next();
         });
     });

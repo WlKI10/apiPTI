@@ -138,7 +138,7 @@ async function verifyandLookToken(req, res, next){
     });
     next();
 }
- async function verifyToken(req, res, next){
+  async function verifyToken(req, res, next){
     
     if (!req.headers.authorization){
         return res.status(401).send("Unauthorized Request3");
@@ -147,19 +147,28 @@ async function verifyandLookToken(req, res, next){
     //console.log(req.headers.authorization.json())
     console.log(token)
     if (token == null) return res.status(401).send("Unauthorized Request2");
-    const payload = await jwt.verify(token, 'secretKey')
-    if (!payload) {
+    await jwt.verify(token, 'secretKey').catch(function(){
         return res.status(401).send('Unauhtorized Request');
-    }
+
+    })
+    
 
     req.userId = payload.email;
     next();
 }
 
-router.get('/profile', verifyToken, async(req,res) =>{
+router.get('/profile', verifyToken,async(req,res) =>{
     var email = req.userId;
-    var user = await User.findOne({email}) 
-    res.send(user.username);
+    await User.findOne({email})
+    .then(function(user){
+        console.log(user.username)
+        res.status(200).json({user: user.username });
+    }).catch(function(err){
+            res.status(401).json({error:err});
+        });
+    
+   
+    
 })
 
 
