@@ -1,5 +1,6 @@
 const {Router} = require('express');
 const router = Router();
+const Raspi = require('../models/Raspi');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
@@ -44,7 +45,9 @@ router.post('/login', async (req,res) => {
     
 })
 router.post('/sessions',async(req,res)=>{} )
-router.post('/addraspy',async(req,res) => {
+
+router.post('/addraspy',verifyandLookToken,async(req,res) => {
+   
 })
 router.get('/tasks', (req,res)=>{
     res.json([
@@ -68,7 +71,7 @@ router.get('/tasks', (req,res)=>{
         },
     ])
 })
-
+router.get('/profile-data',)
 router.get('/private-tasks', verifyToken, (req,res)=>{
     res.json([
         {
@@ -93,7 +96,7 @@ router.get('/private-tasks', verifyToken, (req,res)=>{
 })
 
 //router.get('/dashboard',)
- function verifyToken(req, res, next){
+async function verifyandLookToken(req, res, next){
     
     if (!req.headers.authorization){
         return res.status(401).send("Unauthorized Request3");
@@ -108,24 +111,78 @@ router.get('/private-tasks', verifyToken, (req,res)=>{
     }
 
     req.userId = payload._id;
+      User.findOne({_id: userId})
+     .then(function(user){//tenemos el usuario
+        
+         Raspi.findOne({username:user.username}).then
+         (function(userRaspi){//add raspi 
+           
+          
+         },function(err){
+         //hemos de añadir la primera raspi
+         const username = userRaspi.username
+         const  {reference,pin}= req.body
+          newRaspi = new Raspi(username,[{reference,pin}])
+          newRaspi.save()
+         
+         
+        }
+         )
+        // Do something with the user
+       
+        
+       return res.send(200)
+    },async function(err){//tenemos que añadir usuario,raspi y pin
+        console.log(err)
+        return res.send(401);
+    });
+    next();
+}
+  async function verifyToken(req, res, next){
+    
+    if (!req.headers.authorization){
+        return res.status(401).send("Unauthorized Request3");
+    }
+    const token = req.headers.authorization.split(' ')[1];
+    //console.log(req.headers.authorization.json())
+    console.log(token)
+    if (token == null) return res.status(401).send("Unauthorized Request2");
+    await jwt.verify(token, 'secretKey').catch(function(){
+        return res.status(401).send('Unauhtorized Request');
+
+    })
+    
+
+    req.userId = payload.email;
     next();
 }
 
-router.get('/profile', verifyToken, (req,res) =>{
-    res.send(req.userID);
+router.get('/profile', verifyToken,async(req,res) =>{
+    var email = req.userId;
+    await User.findOne({email})
+    .then(function(user){
+        console.log(user.username)
+        res.status(200).json({user: user.username });
+    }).catch(function(err){
+            res.status(401).json({error:err});
+        });
+    
+   
+    
 })
-/*
+
+
 router.post('/profile/modifypassword', verifyToken, async (req,res) => {
 
     const {old_password, new_password1, new_password2} = req.body;
-    const user = user_actual;
-    console.log(user);
+    var email = req.userId;
+    var user = await User.findOne({email}) 
     
     if (new_password1 != new_password2) return res.status(401).send("The two new passwords do not match");
 
     user.comparePassword(old_password, function(err, isMatch){
-        if (isMatch && isMatch == true){
-            return res.status(401).send("The new password is the same as the old one");
+        if (isMatch && isMatch != true){
+            return res.status(401).send("The old password is not correct");
         }
     });
     if (new_password1 == old_password) return res.status(401).send("The new password is the same as the old one");
@@ -134,6 +191,6 @@ router.post('/profile/modifypassword', verifyToken, async (req,res) => {
     await user.save();
     return res.status(200).send("Password changed successfully");
 });
-*/
+
 module.exports = router;
 
