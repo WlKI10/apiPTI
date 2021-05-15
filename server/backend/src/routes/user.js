@@ -147,11 +147,10 @@ async function verifyandLookToken(req, res, next){
     //console.log(req.headers.authorization.json())
     console.log(token)
     if (token == null) return res.status(401).send("Unauthorized Request2");
-    await jwt.verify(token, 'secretKey').catch(function(){
+    const payload = await jwt.verify(token, 'secretKey')
+    if (!payload) {
         return res.status(401).send('Unauhtorized Request');
-
-    })
-    
+    }
 
     req.userId = payload.email;
     next();
