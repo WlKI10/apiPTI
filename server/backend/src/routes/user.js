@@ -158,7 +158,8 @@ async function verifyandLookToken(req, res, next){
 
 router.get('/profile', verifyToken,async(req,res) =>{
     var email = req.userId;
-    await User.findOne({email})
+    user =await User.findOne({email})
+    
     .then(function(user){
         console.log(user.username)
         res.status(200).json({user: user.username });
@@ -167,6 +168,7 @@ router.get('/profile', verifyToken,async(req,res) =>{
         });
     
    
+ 
     
 })
 
