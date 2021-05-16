@@ -7,4 +7,6 @@ const raspiSchema = new Schema ({
     serial_number:{type:String,required:true, unique:true},
 });
 
+
+
 module.exports=model('Raspi',raspiSchema);

@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 var raspis_to_add = new Map();
+raspis_to_add.set("1234","1234")
 router.post('/signup', async (req,res) => {
     const {email, username, password} = req.body;
 
@@ -54,20 +55,20 @@ router.post('/addraspy',verifyToken,async(req,res) => {
        
         const username = user.username;
         const {serial_number, pin}= req.body;
-        Raspi.findOne({"serial_number":serial_number}) 
+        await Raspi.findOne({"serial_number":serial_number}) 
         .then(async function(raspi){//add raspi
-            
-            if (raspi == null){
+            console.log(raspi)
+            if (raspi==null){
                 const pin_to_check = raspis_to_add.get(serial_number);
                 if (pin != pin_to_check) return res.status(401).send("Pin is incorrect");
                 raspis_to_add.delete(serial_number);
                 newRaspi = new Raspi({username,serial_number});
                 await newRaspi.save();
                 return res.sendStatus(200);
-            }
+            }else{
             console.log(raspi);
             return res.status(401).send("Serial Number already in use");
-    
+        }
         },function(err){
             console.log(err)
             return res.sendStatus(401);
@@ -78,7 +79,7 @@ router.post('/addraspy',verifyToken,async(req,res) => {
     });
 })
 
-   
+
 router.post('/deleteraspy',verifyToken,async(req,res) => {
 
     const email = req.userId;
@@ -264,8 +265,13 @@ router.get('/profile', verifyToken,async(req,res) =>{
 router.get('/myraspis',verifyToken,async(req,res) =>{
     var email = req.userId;
     await User.findOne({email})
-    .then(function(user){
-        Raspi.find(user.userId)
+    .then(async function(user){
+        await Raspi.find({username:user.username})
+        .then(function(raspi){
+            res.send.status(200).json([raspi])
+        },function(err){
+            res.send.status(401).send("error retrieving information")
+        })
     })
 
 })
