@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
 
 const saltRounds = 10;
-var raspis_to_add = new Map();
 
 
 router.post('/signup', async (req,res) => {
@@ -17,8 +16,6 @@ router.post('/signup', async (req,res) => {
     if (user) return res.status(401).send("The email is already in use");
     user = await User.findOne({username})
     if (user) return res.status(401).send("The username is already in use");
-    const aux = email.split('@');
-    if (aux.length != 2) return res.status(401).send("The email is not valid");
 
     const newUser = new User({email, username, password});
     await newUser.save();
@@ -49,115 +46,111 @@ router.post('/login', async (req,res) => {
 })
 router.post('/sessions',async(req,res)=>{} )
 
-router.post('/addraspy',verifyToken,async(req,res) => {
+router.post('/addraspy',verifyandLookToken,async(req,res) => {
+   
+})
+router.get('/tasks', (req,res)=>{
+    res.json([
+        {
+            _id:1,
+            name: 'Task one',
+            description: 'lorem ipsum',
+            date: "2021-04-03T11:52:41.220Z"
+        },
+        {
+            _id:2,
+            name: 'Task two',
+            description: 'lorem ipsum',
+            date: "2021-04-03T11:52:41.220Z"
+        },
+        {
+            _id:3,
+            name: 'Task three',
+            description: 'lorem ipsum',
+            date: "2021-04-03T11:52:41.220Z"
+        },
+    ])
+})
+router.get('/profile-data',)
+router.get('/private-tasks', verifyToken, (req,res)=>{
+    res.json([
+        {
+            _id:1,
+            name: 'Task one',
+            description: 'lorem ipsum',
+            date: "2021-04-03T11:52:41.220Z"
+        },
+        {
+            _id:2,
+            name: 'Task two',
+            description: 'lorem ipsum',
+            date: "2021-04-03T11:52:41.220Z"
+        },
+        {
+            _id:3,
+            name: 'Task three',
+            description: 'lorem ipsum',
+            date: "2021-04-03T11:52:41.220Z"
+        },
+    ])
+})
 
-    const email = req.userId;
-    await User.findOne({email})
-    .then(async function(user){
-       
-        const username = user.username;
-        const {serial_number, pin}= req.body;
-        Raspi.findOne({"serial_number":serial_number}) 
-        .then(async function(raspi){//add raspi
-            
-            if (raspi == null){
-                const pin_to_check = raspis_to_add.get(serial_number);
-                if (pin != pin_to_check) return res.status(401).send("Pin is incorrect");
-                raspis_to_add.delete(serial_number);
-                newRaspi = new Raspi({username,serial_number});
-                await newRaspi.save();
-                return res.sendStatus(200);
-            }
-            console.log(raspi);
-            return res.status(401).send("Serial Number already in use");
+//router.get('/dashboard',)
+async function verifyandLookToken(req, res, next){
     
-        },function(err){
-            console.log(err)
-            return res.sendStatus(401);
-        })
-    },async function(err){
-        console.log(err)
-        return res.sendStatus(401);
-    });
-})
-
-router.post('/deleteraspy',verifyToken,async(req,res) => {
-
-    const email = req.userId;
-    await User.findOne({email})
-    .then(async function(user){
-       
-        const username = user.username;
-        const serial_number = req.body;
-        const raspi_to_remove = Raspi.findOne({serial_number});
-        console.log(raspi_to_remove.serial_number);
-        if (raspi_to_remove.username == username){ 
-            Raspi.remove({serial_number});
-            return res.sendStatus(200);
-        }
-        else return res.status(401).send("Error");
-    },async function(err){
-        console.log(err)
-        return res.sendStatus(401);
-    });
-})
-
-router.post('/getlogger', verifyRaspi, async (req,res)=>{
-    // S envia serial number i tots els botons amb els nous valors
-})
-
-router.post('/initraspi',verifyRaspi, (req,res) =>{
-
-    //Raspi fa petició de valors al server 
-    const serial_number = req.body;
-    Raspi.findOne({"serial_number" : serial_number}) 
-    .then(function(raspi_to_return){ 
-        return res.status(200).json({raspi_to_return});
-    },function(err){
-        console.log("Aqui");
-        return res.sendStatus(401);
-    })
-})
-
-router.post('/setraspi',verifyRaspi, (req,res)=>{
-    const {serial_number, pin}= req.body;
-    if (raspis_to_add.has(serial_number)) return res.sendStatus(401);
-    else raspis_to_add.set(serial_number, pin);
-    return res.sendStatus(200);
-})
-
-async function verifyToken(req, res, next){
-
     if (!req.headers.authorization){
-        return res.status(401).send("Unauthorized Request3");       
-    }
-    const token = req.headers.authorization.split(' ')[1];
-    if (token == null) return res.status(401).send("Unauthorized Request2");
-    const payload = await jwt.verify(token, 'secretKey')
-    if (!payload) {
-        return res.status(401).send('Unauhtorized Request');
-    }
-
-    req.userId = payload.email;
-    next();
-}
-
-async function verifyRaspi(req, res, next){
-
-    if (!req.headers.authorization){
-        return res.status(401).send("Unauthorized Request"); 
+        return res.status(401).send("Unauthorized Request3");
     }
     const token = req.headers.authorization.split(' ')[1];
     //console.log(req.headers.authorization.json())
     console.log(token)
     if (token == null) return res.status(401).send("Unauthorized Request2");
-
-    const payload = await jwt.verify(token, 'secretKey')
+    const payload =  jwt.verify(token, 'secretKey')
     if (!payload) {
         return res.status(401).send('Unauhtorized Request');
     }
 
-    if (payload.email != "raspi@raspi.raspi") return res.status(401).send('Unauhtorized Request');
+    req.userId = payload._id;
+      User.findOne({_id: userId})
+     .then(function(user){//tenemos el usuario
+        
+         Raspi.findOne({username:user.username}).then
+         (function(userRaspi){//add raspi 
+           
+          
+         },function(err){
+         //hemos de añadir la primera raspi
+         const username = userRaspi.username
+         const  {reference,pin}= req.body
+          newRaspi = new Raspi(username,[{reference,pin}])
+          newRaspi.save()
+         
+         
+        }
+         )
+        // Do something with the user
+       
+        
+       return res.send(200)
+    },async function(err){//tenemos que añadir usuario,raspi y pin
+        console.log(err)
+        return res.send(401);
+    });
+    next();
+}
+  async function verifyToken(req, res, next){
+    
+    if (!req.headers.authorization){
+        return res.status(401).send("Unauthorized Request3");
+    }
+    const token = req.headers.authorization.split(' ')[1];
+    //console.log(req.headers.authorization.json())
+    console.log(token)
+    if (token == null) return res.status(401).send("Unauthorized Request2");
+    const payload = await jwt.verify(token, 'secretKey')
+    if (!payload) {
+        return res.status(401).send('Unauhtorized Request');
+    }
 
     req.userId = payload.email;
     next();
@@ -172,8 +165,11 @@ router.get('/profile', verifyToken,async(req,res) =>{
         res.status(200).json({user: user.username });
     }).catch(function(err){
             res.status(401).json({error:err});
-        }); 
-
+        });
+    
+   
+ 
+    
 })
 
 
@@ -192,7 +188,7 @@ router.post('/profile/modifypassword', verifyToken, async (req,res) => {
             console.log("your password has been changed successfully")
             user.password = newpass;
              await user.save();
-            return res.status(200).send("Password changed successfully").json({text :'statusok'});
+            return res.status(200).json({text :'statusok'});
            
         }else{
             res.status(401).send("The old password is not correct");
@@ -203,3 +199,4 @@ router.post('/profile/modifypassword', verifyToken, async (req,res) => {
 });
 
 module.exports = router;
+
