@@ -148,12 +148,17 @@ async function verifyRaspi(req, res, next){
         return res.status(401).send("Unauthorized Request"); 
     }
     const token = req.headers.authorization.split(' ')[1];
-    if (token == null) return res.status(401).send("Unauthorized Request");
+    //console.log(req.headers.authorization.json())
+    console.log(token)
+    if (token == null) return res.status(401).send("Unauthorized Request2");
+
     const payload = await jwt.verify(token, 'secretKey')
     if (!payload) {
         return res.status(401).send('Unauhtorized Request');
     }
+
     if (payload.email != "raspi@raspi.raspi") return res.status(401).send('Unauhtorized Request');
+
     req.userId = payload.email;
     next();
 }
@@ -168,27 +173,33 @@ router.get('/profile', verifyToken,async(req,res) =>{
     }).catch(function(err){
             res.status(401).json({error:err});
         }); 
+
 })
 
 
 router.post('/profile/modifypassword', verifyToken, async (req,res) => {
 
-    const {old_password, new_password1, new_password2} = req.body;
+    const {oldpass, newpass, newpasscop} = req.body;
     var email = req.userId;
     var user = await User.findOne({email}) 
-    
-    if (new_password1 != new_password2) return res.status(401).send("The two new passwords do not match");
-
-    user.comparePassword(old_password, function(err, isMatch){
-        if (isMatch && isMatch != true){
-            return res.status(401).send("The old password is not correct");
+    console.log(oldpass)
+    console.log(newpass)
+    console.log(newpasscop)
+    if (newpass != newpasscop) return res.status(401).send("The two new passwords do not match");
+    if (newpass == oldpass) return res.status(401).send("The new password is the same as the old one");
+    user.comparePassword(oldpass, async function(err, isMatch){
+        if (isMatch && isMatch == true){
+            console.log("your password has been changed successfully")
+            user.password = newpass;
+             await user.save();
+            return res.status(200).send("Password changed successfully").json({text :'statusok'});
+           
+        }else{
+            res.status(401).send("The old password is not correct");
         }
     });
-    if (new_password1 == old_password) return res.status(401).send("The new password is the same as the old one");
-
-    user.password = new_password1;
-    await user.save();
-    return res.status(200).send("Password changed successfully");
+   
+   
 });
 
 module.exports = router;
