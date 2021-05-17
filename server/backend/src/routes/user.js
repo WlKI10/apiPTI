@@ -205,10 +205,13 @@ router.get('/myraspis',verifyToken,async(req,res) =>{
     .then(async function(user){
         await Raspi.find({username:user.username})
         .then(function(raspi){
-            res.send.status(200).json([raspi])
-        },function(err){
-            res.send.status(401).send("error retrieving information")
+            console.log(raspi)
+            res.status(200).json(raspi)
+        }).catch(function(err){
+            res.status(401).send("error retrieving information")
         })
+    }).catch(function(error){
+        res.status(401).send("error with username")
     })
 
 })
