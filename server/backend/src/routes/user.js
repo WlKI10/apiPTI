@@ -60,7 +60,8 @@ router.post('/addraspy',verifyToken,async(req,res) => {
                 const pin_to_check = raspis_to_add.get(serial_number);
                 if (pin != pin_to_check) return res.status(401).send("Pin is incorrect");
                 raspis_to_add.delete(serial_number);
-                newRaspi = new Raspi({serial_number,username});
+                const button_value = 0;
+                newRaspi = new Raspi({serial_number,username,button_value, button_value, button_value});
                 await newRaspi.save();
                 return res.sendStatus(200);
             }else return res.status(401).send("Serial Number already in use");
@@ -118,14 +119,24 @@ router.post('/initraspi',verifyRaspi, async (req,res) =>{
 })
 
 router.post('/setraspi',verifyRaspi, async (req,res)=>{
-    const {serial_number, pin} = req.body;
-    const raspi = await Raspi.findOne({"serial_number":serial_number});
-    if (raspi) return res.status(401).send("Error DB");
-    else{
-        if (raspis_to_add.has(serial_number)) return res.status(401).send("Error Mapa");
-        else raspis_to_add.set(serial_number, pin);
-        return res.sendStatus(200);
-    }
+    const {serial_number, pin, button1, button2, button3} = req.body;
+    await Raspi.findOne({"serial_number" : serial_number}) 
+    .then(async function(raspi){ 
+        if (raspi){
+            if (button1 != raspi.button1) raspi.button1 = button1;
+            if (button2 != raspi.button2) raspi.button2 = button2;
+            if (button3 != raspi.button3) raspi.button3 = button3;
+            await raspi.save();
+            return res.sendStatus(200);
+        }
+        else{
+            if (raspis_to_add.has(serial_number)) return res.status(401).send("Error Mapa");
+            else raspis_to_add.set(serial_number, pin);
+            return res.sendStatus(200);
+        }
+    },function(err){
+        return res.sendStatus(err);
+    })
 })
 
 async function verifyRaspi(req, res, next){
@@ -205,13 +216,10 @@ router.get('/myraspis',verifyToken,async(req,res) =>{
     .then(async function(user){
         await Raspi.find({username:user.username})
         .then(function(raspi){
-            console.log(raspi)
-            res.status(200).json(raspi)
-        }).catch(function(err){
-            res.status(401).send("error retrieving information")
+            res.send.status(200).json([raspi])
+        },function(err){
+            res.send.status(401).send("error retrieving information")
         })
-    }).catch(function(error){
-        res.status(401).send("error with username")
     })
 
 })

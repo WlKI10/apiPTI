@@ -5,6 +5,9 @@ var bcrypt = require('bcrypt');
 const raspiSchema = new Schema ({
     serial_number:{type:String,required:true, unique:true},
     username:{type:String,required:true,unique:false},
+    button1:{type:String, required:false},
+    button2:{type:String, required:false},
+    button3:{type:String, required:false},
 });
 
 
