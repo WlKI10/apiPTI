@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 var raspis_to_add = new Map();
-raspis_to_add.set("1234","1234")
+
 router.post('/signup', async (req,res) => {
     const {email, username, password} = req.body;
 
@@ -31,7 +31,6 @@ router.post('/signup', async (req,res) => {
 router.post('/login', async (req,res) => {
     const {email, password} = req.body;
     const user = await User.findOne({email})
-    console.log(user.username)
     if (!user) res.status(401).send("The username doesn't exist or the password is incorrect");
     user.comparePassword(password, function(err, isMatch){
         if (isMatch && isMatch == true){
@@ -45,7 +44,6 @@ router.post('/login', async (req,res) => {
     });
     
 })
-router.post('/sessions',async(req,res)=>{} )
 
 router.post('/addraspy',verifyToken,async(req,res) => {
 
@@ -123,9 +121,9 @@ router.post('/setraspi',verifyRaspi, async (req,res)=>{
     await Raspi.findOne({"serial_number" : serial_number}) 
     .then(async function(raspi){ 
         if (raspi){
-            if (button1 != raspi.button1) raspi.button1 = button1;
-            if (button2 != raspi.button2) raspi.button2 = button2;
-            if (button3 != raspi.button3) raspi.button3 = button3;
+            if (button1 == 1) raspi.button1 = raspi.button1 + 1;
+            if (button2 == 1) raspi.button2 = raspi.button2 + 1;
+            if (button3 == 1) raspi.button3 = raspi.button3 + 1;
             await raspi.save();
             return res.sendStatus(200);
         }
@@ -199,7 +197,6 @@ router.get('/profile', verifyToken,async(req,res) =>{
     user =await User.findOne({email})
     
     .then(function(user){
-        console.log(user.username)
         res.status(200).json({user: user.username });
     }).catch(function(err){
             res.status(401).json({error:err});
@@ -228,14 +225,11 @@ router.post('/profile/modifypassword', verifyToken, async (req,res) => {
     const {oldpass, newpass, newpasscop} = req.body;
     var email = req.userId;
     var user = await User.findOne({email}) 
-    console.log(oldpass)
-    console.log(newpass)
-    console.log(newpasscop)
     if (newpass != newpasscop) return res.status(401).send("The two new passwords do not match");
     if (newpass == oldpass) return res.status(401).send("The new password is the same as the old one");
     user.comparePassword(oldpass, async function(err, isMatch){
         if (isMatch && isMatch == true){
-            console.log("your password has been changed successfully")
+            console.log("Your password has been changed successfully")
             user.password = newpass;
              await user.save();
             return res.status(200).json({text :'statusok'});
