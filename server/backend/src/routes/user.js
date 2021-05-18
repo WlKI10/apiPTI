@@ -85,7 +85,7 @@ router.post('/deleteraspy',verifyToken,async(req,res) => {
         const serial_number = req.body.serial_number;
         await Raspi.findOne({"serial_number":serial_number}) 
         .then(async function(raspi){
-            if (raspi){ 
+            if (raspi.username == username){ 
                 await Raspi.remove({"serial_number":serial_number});
                 return res.sendStatus(200);
             }
@@ -99,9 +99,6 @@ router.post('/deleteraspy',verifyToken,async(req,res) => {
     });
 })
 
-router.post('/getlogger', verifyRaspi, async (req,res)=>{
-    // S envia serial number i tots els botons amb els nous valors
-})
 
 router.post('/initraspi',verifyRaspi, async (req,res) =>{
 
@@ -111,19 +108,26 @@ router.post('/initraspi',verifyRaspi, async (req,res) =>{
     .then(function(raspi_to_return){ 
         if (!raspi_to_return) return res.sendStatus(401);
         return res.status(200).json({raspi_to_return});
-    },function(err){
+    }, async function(err){
         return res.sendStatus(401);
     })
 })
 
 router.post('/setraspi',verifyRaspi, async (req,res)=>{
     const {serial_number, pin, button1, button2, button3} = req.body;
+    console.log(req.body)
     await Raspi.findOne({"serial_number" : serial_number}) 
     .then(async function(raspi){ 
         if (raspi){
+            console.log(button1);
+            console.log(button2);
+            console.log(button3);
             if (button1 == 1) raspi.button1 = raspi.button1 + 1;
             if (button2 == 1) raspi.button2 = raspi.button2 + 1;
             if (button3 == 1) raspi.button3 = raspi.button3 + 1;
+            console.log(raspi.button1);
+            console.log(raspi.button2);
+            console.log(raspi.button3);
             await raspi.save();
             return res.sendStatus(200);
         }
@@ -152,28 +156,6 @@ async function verifyRaspi(req, res, next){
     req.userId = payload.email;
     next();
 }
-router.get('/tasks', (req,res)=>{
-    res.json([
-        {
-            _id:1,
-            name: 'Task one',
-            description: 'lorem ipsum',
-            date: "2021-04-03T11:52:41.220Z"
-        },
-        {
-            _id:2,
-            name: 'Task two',
-            description: 'lorem ipsum',
-            date: "2021-04-03T11:52:41.220Z"
-        },
-        {
-            _id:3,
-            name: 'Task three',
-            description: 'lorem ipsum',
-            date: "2021-04-03T11:52:41.220Z"
-        },
-    ])
-})
 
 
 async function verifyToken(req, res, next){
