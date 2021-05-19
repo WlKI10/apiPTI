@@ -58,7 +58,7 @@ router.post('/addraspy',verifyToken,async(req,res) => {
                 const pin_to_check = raspis_to_add.get(serial_number);
                 if (pin != pin_to_check) return res.status(401).send("Pin is incorrect");
                 raspis_to_add.delete(serial_number);
-                const button_value = 0;
+                const button_value = "0";
                 newRaspi = new Raspi({serial_number,username,button_value, button_value, button_value});
                 await newRaspi.save();
                 return res.sendStatus(200);
@@ -119,15 +119,19 @@ router.post('/setraspi',verifyRaspi, async (req,res)=>{
     await Raspi.findOne({"serial_number" : serial_number}) 
     .then(async function(raspi){ 
         if (raspi){
-            console.log(button1);
-            console.log(button2);
-            console.log(button3);
-            if (button1 == 1) raspi.button1 = raspi.button1 + 1;
-            if (button2 == 1) raspi.button2 = raspi.button2 + 1;
-            if (button3 == 1) raspi.button3 = raspi.button3 + 1;
-            console.log(raspi.button1);
-            console.log(raspi.button2);
-            console.log(raspi.button3);
+
+            if (button1 == 1){
+                var new_button = raspi.button1 << 0;
+                raspi.button1 = new_button + 1;
+            }
+            if (button2 == 1){
+                var new_button = raspi.button2 << 0;
+                raspi.button2 = new_button + 1;
+            }
+            if (button3 == 1){
+                var new_button = raspi.button3 << 0;
+                raspi.button3 = new_button + 1;
+            }
             await raspi.save();
             return res.sendStatus(200);
         }
