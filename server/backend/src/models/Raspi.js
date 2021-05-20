@@ -8,6 +8,9 @@ const raspiSchema = new Schema ({
     button1:{type:String, required:false},
     button2:{type:String, required:false},
     button3:{type:String, required:false},
+    button1_goal:{type:String, required:false},
+    button2_goal:{type:String, required:false},
+    button3_goal:{type:String, required:false}
 });
 
 
