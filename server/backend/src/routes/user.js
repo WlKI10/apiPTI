@@ -45,6 +45,27 @@ router.post('/login', async (req,res) => {
     
 })
 
+router.post('/setbutton', verifyToken, async(req,res)=> {
+    const email = req.userId;
+    await User.findOne({email})
+    .then(async function(user){
+        const username = user.username;
+        const {serial_number, button, goal}= req.body;
+        await Raspi.findOne({"serial_number":serial_number}) 
+        .then(async function(raspi){
+            if (button == 1) raspi.button1_goal = goal;
+            else if (button == 2) raspi.button2_goal = goal;
+            else if (button == 3) raspi.button3_goal = goal;
+            await raspi.save();
+            return res.sendStatus(200);
+        }, async function(err){
+            return res.sendStatus(401);
+        })
+    },async function(err){
+        return res.sendStatus(401);
+    });
+})
+
 router.post('/addraspy',verifyToken,async(req,res) => {
 
     const email = req.userId;
@@ -89,7 +110,7 @@ router.post('/deleteraspy',verifyToken,async(req,res) => {
                 await Raspi.remove({"serial_number":serial_number});
                 return res.sendStatus(200);
             }
-        else return res.status(401).send("Error");
+            else return res.status(401).send("Error");
     },function(err){
         console.log(err)
         return res.sendStatus(401);
@@ -115,11 +136,9 @@ router.post('/initraspi',verifyRaspi, async (req,res) =>{
 
 router.post('/setraspi',verifyRaspi, async (req,res)=>{
     const {serial_number, pin, button1, button2, button3} = req.body;
-    console.log(req.body)
     await Raspi.findOne({"serial_number" : serial_number}) 
     .then(async function(raspi){ 
         if (raspi){
-
             if (button1 == 1){
                 var new_button = raspi.button1 << 0;
                 raspi.button1 = new_button + 1;
@@ -133,7 +152,7 @@ router.post('/setraspi',verifyRaspi, async (req,res)=>{
                 raspi.button3 = new_button + 1;
             }
             await raspi.save();
-            return res.sendStatus(200);
+            return res.status(200).json({raspi});
         }
         else{
             if (raspis_to_add.has(serial_number)) return res.status(401).send("Error Mapa");
