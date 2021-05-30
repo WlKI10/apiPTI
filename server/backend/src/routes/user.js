@@ -8,6 +8,9 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 var raspis_to_add = new Map();
+raspis_to_add.set("1234","1234");
+raspis_to_add.set("4321","4321");
+
 
 router.post('/signup', async (req,res) => {
     const {email, username, password} = req.body;
@@ -218,10 +221,13 @@ router.get('/myraspis',verifyToken,async(req,res) =>{
     .then(async function(user){
         await Raspi.find({username:user.username})
         .then(function(raspi){
-            res.send.status(200).json([raspi])
-        },function(err){
-            res.send.status(401).send("error retrieving information")
+            console.log(raspi)
+            res.status(200).json(raspi)
+        }).catch(function(err){
+            res.status(401).send("error retrieving information")
         })
+    }).catch(function(error){
+        res.status(401).send("error with username")
     })
 
 })
